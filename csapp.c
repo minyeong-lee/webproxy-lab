@@ -553,6 +553,14 @@ int Socket(int domain, int type, int protocol)
 	unix_error("Socket error");
     return rc;
 }
+/*
+   domain : 소켓의 주소 체계 (ex. AF_INET은 IPv4, AF_INET은 IPv6)
+   type : 소켓의 타입 (ex. SOCKET_STREAM은 TCP, SOCKET_DGRAM은 UDP)
+   protocol : 프로토콜을 명시 (대부분 0으로 설정하여 기본 프로토콜 사용)
+   
+   반환값 : 생성된 소켓의 파일 디스크립터 반환하며, 실패 시 -1 반환한다
+   사용 목적 : 소켓 기반 통신을 시작하기 위해 소켓을 열어준다
+*/
 
 void Setsockopt(int s, int level, int optname, const void *optval, int optlen) 
 {
@@ -561,6 +569,16 @@ void Setsockopt(int s, int level, int optname, const void *optval, int optlen)
     if ((rc = setsockopt(s, level, optname, optval, optlen)) < 0)
 	unix_error("Setsockopt error");
 }
+/*
+    s : 소켓 파일 디스크립터
+    level : 옵션의 적용 수준 (ex. SQL_SOCKET)
+    optname : 설정할 옵션 이름 (ex. SO_REUSEADDR)
+    optval: 옵션의 값이 저장된 포인터
+    optlen: optval의 크기
+
+    반환값 : 없음. 실패 시 오류 반환
+    목적 : 소켓이 동작하는 방식을 세부적으로 조정할 때 사용된다. (ex. 포트 재사용 설정 등)
+*/
 
 void Bind(int sockfd, struct sockaddr *my_addr, int addrlen) 
 {
@@ -569,6 +587,14 @@ void Bind(int sockfd, struct sockaddr *my_addr, int addrlen)
     if ((rc = bind(sockfd, my_addr, addrlen)) < 0)
 	unix_error("Bind error");
 }
+/*
+    sockfd : 바인딩할 소켓 파일 디스크립터
+    my_addr : 소켓에 연결할 주소 정보를 담은 sockaddr 구조체
+    addrlen : 주소 구조체의 크기
+    
+    반환값 : 없음. 실패 시 오류 반환
+    사용 목적 : 서버가 수신할 IP와 포트를 지정할 때 사용된다
+*/
 
 void Listen(int s, int backlog) 
 {
@@ -577,6 +603,13 @@ void Listen(int s, int backlog)
     if ((rc = listen(s,  backlog)) < 0)
 	unix_error("Listen error");
 }
+/*
+    s : 대기 상태로 설정할 소켓 파일 디스크립터
+    backlog : 대기열에 쌓을 수 있는 최대 연결 요청 수
+
+    반환값 : 없음. 실패 시 오류 반환
+    사용 목적 : 서버가 클라이언트의 연결 요청을 수락하기 위해 대기 상태로 전환할 때 사용된다
+*/
 
 int Accept(int s, struct sockaddr *addr, socklen_t *addrlen) 
 {
@@ -586,6 +619,14 @@ int Accept(int s, struct sockaddr *addr, socklen_t *addrlen)
 	unix_error("Accept error");
     return rc;
 }
+/*
+    s : 수락할 소켓 파일 디스크립터
+    addr : 클라이언트 주소 정보가 저장될 구조체
+    addrlen : 주소 구조체의 크기
+
+    반환값 : 새로 생성된 소켓의 파일 디스크립터를 반환하며, 실패 시 -1 반환
+    사용 목적 : 서버가 클라이언트 연결을 수락하여 개별 통신을 시작할 수 있게 한다
+*/
 
 void Connect(int sockfd, struct sockaddr *serv_addr, int addrlen) 
 {
@@ -594,6 +635,14 @@ void Connect(int sockfd, struct sockaddr *serv_addr, int addrlen)
     if ((rc = connect(sockfd, serv_addr, addrlen)) < 0)
 	unix_error("Connect error");
 }
+/*
+    sockfd : 연결할 소켓 파일 디스크립터
+    serv_addr : 연결할 서버의 주소 정보가 저장된 sockaddr 구조체
+    addrlen : 주소 구조체의 크기
+
+    반환값 : 없음. 실패 시 오류 반환
+    사용 목적 : 클라이언트가 서버에 연결 요청을 보내기 위해 사용된다
+*/
 
 /*******************************
  * Protocol-independent wrappers
@@ -608,6 +657,17 @@ void Getaddrinfo(const char *node, const char *service,
         gai_error(rc, "Getaddrinfo error");
 }
 /* $end getaddrinfo */
+/*
+    node : 변환할 호스트 이름 또는 IP 주소 (ex. localhost 또는 192.168.1.1)
+    service : 변환할 서비스 이름 또는 포트 번호 (ex. http 또는 80)
+    hints : 변환 방식을 지정하는 addrinfo 구조체 (NULL로 설정 가능)
+    res : 결과로 반환되는 소켓 주소 리스트의 포인터
+    
+    반환값 : 성공 시 0 반환, 실패 시 오류 코드 반환
+    사용 목적: 특정 호스트와 포트에 맞는 주소 정보 가져올 때 사용함
+               socket이나 connect와 함께 사용된다
+*/
+
 
 void Getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host, 
                  size_t hostlen, char *serv, size_t servlen, int flags)
@@ -618,17 +678,41 @@ void Getnameinfo(const struct sockaddr *sa, socklen_t salen, char *host,
                           servlen, flags)) != 0) 
         gai_error(rc, "Getnameinfo error");
 }
+/*
+sa: 변환할 소켓 주소.
+salen: 소켓 주소의 길이.
+host: 변환된 호스트 이름을 저장할 버퍼.
+hostlen: 호스트 이름을 저장할 버퍼의 크기.
+serv: 변환된 서비스 이름을 저장할 버퍼.
+servlen: 서비스 이름을 저장할 버퍼의 크기.
+flags: 변환 방식 설정 (예: NI_NUMERICHOST는 숫자 형식의 주소를 사용).
+반환값: 성공 시 0을 반환하고, 실패 시 오류 코드를 반환합니다.
+사용 목적: IP 주소와 포트 번호를 호스트와 서비스 이름으로 변환할 때 사용합니다. 네트워크 로깅이나 디버깅에 유용합니다.
+*/
 
 void Freeaddrinfo(struct addrinfo *res)
 {
     freeaddrinfo(res);
 }
+/*
+res: 해제할 addrinfo 구조체 포인터.
+반환값: 없음.
+사용 목적: Getaddrinfo로 할당된 메모리 블록을 사용 후에 해제하여 메모리 누수를 방지합니다.
+*/
 
 void Inet_ntop(int af, const void *src, char *dst, socklen_t size)
 {
     if (!inet_ntop(af, src, dst, size))
         unix_error("Inet_ntop error");
 }
+/*
+af: 주소 패밀리 (예: AF_INET은 IPv4, AF_INET6은 IPv6).
+src: 변환할 이진 형식의 IP 주소.
+dst: 변환된 문자열 형식의 IP 주소를 저장할 버퍼.
+size: dst 버퍼의 크기.
+반환값: 성공 시 dst 포인터를 반환하며, 실패 시 NULL을 반환합니다.
+사용 목적: 네트워크 주소를 사람이 읽을 수 있는 문자열 형식으로 변환할 때 사용합니다.
+*/
 
 void Inet_pton(int af, const char *src, void *dst) 
 {
@@ -640,6 +724,14 @@ void Inet_pton(int af, const char *src, void *dst)
     else if (rc < 0)
         unix_error("Inet_pton error");
 }
+/*
+파라미터:
+af: 주소 패밀리 (예: AF_INET은 IPv4, AF_INET6은 IPv6).
+src: 변환할 문자열 형식의 IP 주소.
+dst: 변환된 이진 형식의 IP 주소를 저장할 메모리 위치.
+반환값: 성공 시 1을 반환하고, 실패 시 0(유효하지 않은 IP) 또는 -1(에러)를 반환합니다.
+사용 목적: 사람이 읽을 수 있는 IP 주소를 네트워크에서 사용할 수 있는 이진 형식으로 변환할 때 사용합니다.
+*/
 
 /*******************************************
  * DNS interface wrappers. 
@@ -772,23 +864,35 @@ ssize_t rio_readn(int fd, void *usrbuf, size_t n)
  * rio_writen - Robustly write n bytes (unbuffered)
  */
 /* $begin rio_writen */
+/* fd에 n 바이트의 데이터를 쓰는 함수 */
 ssize_t rio_writen(int fd, void *usrbuf, size_t n) 
 {
-    size_t nleft = n;
-    ssize_t nwritten;
-    char *bufp = usrbuf;
+    size_t nleft = n;  //nleft는 아직 쓰지 않은 남은 바이트 수를 의미 (처음에는 쓰고자 하는 총 바이트 수 n으로 초기화된다)
+    ssize_t nwritten;  //write 함수가 한 번에 성공적으로 쓴 바이트 수를 저장할 변수
+    char *bufp = usrbuf;  //write 함수 호출 시 쓸 데이터의 시작 위치 가리킴
 
-    while (nleft > 0) {
+    while (nleft > 0) {  //nleft가 0이 되면 종료
 	if ((nwritten = write(fd, bufp, nleft)) <= 0) {
 	    if (errno == EINTR)  /* Interrupted by sig handler return */
 		nwritten = 0;    /* and call write() again */
 	    else
 		return -1;       /* errno set by write() */
 	}
-	nleft -= nwritten;
-	bufp += nwritten;
+	nleft -= nwritten; //nleft(남은 바이트 수)에서 방금 쓴 바이트 수(nwritten)를 빼서 업데이트함
+	bufp += nwritten;  //포인터 'bufp'를 nwritten만큼 이동시켜 다음에 쓸 데이터의 위치를 가리키게 한다. 즉, 이미 쓴 부분 건너뛰고 남은 데이터 위치로 이동하는 것
     }
     return n;
+    /*
+    [write 함수의 반환값 의미]
+    1. 양수 값 : write 함수가 반환하는 양수 값은 성공적으로 쓴 바이트 수를 의미한다.
+                - 예를 들어, write 호출에서 fd에 10바이트 쓰기를 요청했는데 write가 10을 반환하면, 요청한 10바이트가 모두 성공적으로 쓰였다는 뜻입니다.
+                - 네트워크 소켓이나 파일 디스크립터에서는 경우에 따라 요청한 바이트 수보다 적은 바이트가 쓰일 수도 있습니다. 
+                  이 경우 write는 실제로 쓴 바이트 수를 반환하므로, 요청한 바이트가 모두 쓰일 때까지 write를 다시 호출하는 것이 일반적입니다.
+    2. 0 (EOF) : 파일에 대한 write 호출에서 0이 반환될 일은 거의 없습니다. 그러나 일반적으로 소켓이나 파이프에서 상대방이 연결을 종료한 상태라면 0을 반환할 수 있습니다.
+    3. 음수 값(-1) : 오류 발생
+    */
+   .0
+   20.
 }
 /* $end rio_writen */
 
@@ -802,45 +906,92 @@ ssize_t rio_writen(int fd, void *usrbuf, size_t n)
  *    read() if the internal buffer is empty.
  */
 /* $begin rio_read */
-static ssize_t rio_read(rio_t *rp, char *usrbuf, size_t n)
+/* 시스템 호출을 사용하여 데이터를 읽어와 버퍼링하는 역할! 버퍼에 채워 읽기 위한 준비 과정 */
+static ssize_t rio_read(rio_t *rp, char *usrbuf, size_t n)  //n은 사용자가 요청한 읽기 크기, 즉 읽고자 하는 최대 바이트 수
 {
-    int cnt;
+    int cnt;  //실제로 읽어온 바이트 수 저장하는 변수
 
-    while (rp->rio_cnt <= 0) {  /* Refill if buf is empty */
-	rp->rio_cnt = read(rp->rio_fd, rp->rio_buf, 
-			   sizeof(rp->rio_buf));
-	if (rp->rio_cnt < 0) {
-	    if (errno != EINTR) /* Interrupted by sig handler return */
+    while (rp->rio_cnt <= 0) {  /* Refill if buf is empty */ //rp->rio_cnt<=0 이면 버퍼에 읽을 데이터가 없음
+	rp->rio_cnt = read(rp->rio_fd, rp->rio_buf,
+			   sizeof(rp->rio_buf));  //read 시스템 호출을 사용해 rp->rio_fd(소켓 파일디스크립터)에서 rio_buf(내부 버퍼 주소)로 최대 sizeof(rp->rio_buf) 바이트를 읽어온다
+                                      //왜 rio_cnt로 저장할까? 현재 버퍼에 남아 있는 데이터의 바이트 수를 명시적으로 추적하기 위해서
+	if (rp->rio_cnt < 0) {  //rio_cnt는 읽어온 데이터의 바이트 수 저장하는 역할이므로, 정상적인 상황에서는 0 또는 양수여야 한다
+	    if (errno != EINTR) /* Interrupted by sig handler return */ //신호 처리로 인해 중단된 것이 아니라면
 		return -1;
 	}
-	else if (rp->rio_cnt == 0)  /* EOF */
-	    return 0;
+	else if (rp->rio_cnt == 0)  /* EOF (End of File)*/ //EOF는 파일이나 입력 스트림의 끝에 도달했다는 표시 의미 (읽어올 데이터가 없거나 더 이상 읽을 데이터가 없다)
+	    return 0;  //0을 반환하여 호출한 쪽에서 EOF임을 알 수 있게 해 준다
 	else 
-	    rp->rio_bufptr = rp->rio_buf; /* Reset buffer ptr */
+	    rp->rio_bufptr = rp->rio_buf; /* Reset buffer ptr */ //데이터를 성공적으로 읽었다면, rio_bufptr을 rio_buf의 시작 위치로 초기화하여 새로 채워진 버퍼의 첫 위치 가리키도록 함
+        /*
+        rio_buf는 데이터를 저장하는 실제 내부 버퍼 배열이다. (이동하지 않고, 고정된 메모리 주소를 갖는다)
+        rio_buf는 주소 상수로, 배열 이름 그 자체가 배열의 시작 주소를 나타내므로, rio_buf 자체는 이동하지 않고 항상 고정된 메모리 위치를 가리킨다
+        */
     }
+    /*
+    [주요 과정]
+    버퍼가 비어 있을 때만 read 시스템 호출로 새 데이터를 채워 넣는 과정
+
+    [매개변수]
+    - n : 사용자는 특정한 바이트 수만큼 데이터를 읽고자 할 수 있다. n이 바로 이 크기
+          (rio_read 함수는 n 바이트를 초과해서는 읽지 않도록, 내부 버퍼에 있는 데이터 양(rp->rio_cnt)과 n 중 작은 값을 선택하여 실제 읽을 양 결정한다)
+
+    [rio_cnt에 read 함수 시스템 콜 반환값 저장하는 이유]
+    - read 시스템 호출로 데이터를 가져올 때마다 rp->rio_cnt에 그 값을 저장하여,
+      이후 함수가 얼마나 많은 데이터를 버퍼에서 읽어야 하는지를 알 수 있게 한다
+
+    [rp->rio_cnt < 0]
+    에러 발생 의미
+    - EOF(End of File)에 도달하면 read는 0을 반환하므로, rio_cnt가 0이 된다
+    - 에러가 발생한 경우에만 read가 -1 반환한다
+    - 즉, 정상적인 데이터 읽기나 EOF가 아닌 명백한 오류가 발생한 것임
+    */
 
     /* Copy min(n, rp->rio_cnt) bytes from internal buf to user buf */
-    cnt = n;          
-    if (rp->rio_cnt < n)   
-	cnt = rp->rio_cnt;
-    memcpy(usrbuf, rp->rio_bufptr, cnt);
-    rp->rio_bufptr += cnt;
-    rp->rio_cnt -= cnt;
-    return cnt;
+    cnt = n;  // 읽을 바이트 수로 설정(사용자가 읽고자 하는 바이트 크기)
+    if (rp->rio_cnt < n)  //n과 rio_cnt 중 더 작은 값을
+	cnt = rp->rio_cnt;  //cnt에 할당하여 요청한 바이트 수가 버퍼에 남아 있는 바이트 수보다 클 경우 남아 있는 바이트 수만큼만 복사한다
+    memcpy(usrbuf, rp->rio_bufptr, cnt);  //memcpy를 사용하여 내부 버퍼(rio_bufptr)에서 usrbuf로 cnt 바이트를 복사한다
+    //포인터와 카운터 업데이트
+    rp->rio_bufptr += cnt;  //내부 버퍼(rio_bufptr)를 cnt만큼 이동시켜 다음 읽기 위치 가리키도록 한다 (포인터 연산) cnt 바이트만큼 오른쪽으로 이동한다
+    rp->rio_cnt -= cnt;  //남은 바이트 수에서 cnt만큼 빼서 내부 버퍼에서 읽어야 할 바이트가 얼마나 남았는지 추적한다
+    return cnt;  //실제로 복사된 바이트 수 반환 (호출한 함수가 얼마나 많은 바이트를 성공적으로 읽었는지 확인할 수 있도록 한다)
 }
 /* $end rio_read */
+/*
+[이 함수 역할]
+rio_read 함수는 rp가 가리키는 rio_t 구조체의 내부 버퍼에서 최대 n 바이트를 읽어와 usrbuf에 저장합니다. 
+리턴 값은 읽은 바이트 수(ssize_t 타입)입니다.
+
+
+[read 함수]
+read는 운영체제 커널에서 제공하는 시스템 호출 (저수준 입출력 함수로, 파일 디스크립터를 통해 데이터 직접 읽어온다)
+- read 함수는 커널에서 실제 데이터를 읽어오는 시스템 호출이다
+- unistd.h 파일에서 구현부를 볼 수 없고, 커널의 파일 시스템이나 네트워크 계층을 통해 데이터를 읽어온다
+*/
+
+
 
 /*
  * rio_readinitb - Associate a descriptor with a read buffer and reset buffer
  */
 /* $begin rio_readinitb */
+/* rio_t 구조체를 초기화하여 버퍼링된 입출력을 준비하는 함수 */
 void rio_readinitb(rio_t *rp, int fd) 
 {
-    rp->rio_fd = fd;  
-    rp->rio_cnt = 0;  
-    rp->rio_bufptr = rp->rio_buf;
+    rp->rio_fd = fd;  //rio_t 구조체(rp)의 rio_fd 필드를 fd로 설정한다 (예. 클라이언트와 연결된 소켓인 connfd 일 수 있다)
+    rp->rio_cnt = 0;  //현재 버퍼에 남아 있는 데이터의 바이트 수. 초기화 시 버퍼 비어 있음을 0으로 설정하여 나타낸다
+    rp->rio_bufptr = rp->rio_buf;  //rio_bufptr 포인터가 rio_buf 배열의 시작 주소를 가리키도록 설정하는 것
 }
 /* $end rio_readinitb */
+/*
+rp : rio_t 구조체
+fd : 특정 파일 디스크립터
+
+rio_bufptr이 rio_buf 배열의 첫 번째 요소를 가리키며, 이후 rio_bufptr++ 를 통해 배열의 다음 요소로 이동할 수 있다
+*/
+
+
 
 /*
  * rio_readnb - Robustly read n bytes (buffered)
@@ -868,13 +1019,14 @@ ssize_t rio_readnb(rio_t *rp, void *usrbuf, size_t n)
  * rio_readlineb - Robustly read a text line (buffered)
  */
 /* $begin rio_readlineb */
-ssize_t rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen) 
+/* rio_t 구조체를 통해 한 줄씩 데이터를 읽어오는 함수 */
+ssize_t rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen)
 {
-    int n, rc;
-    char c, *bufp = usrbuf;
+    int n, rc;  //n은 읽은 바이트 수 기록하는 변수 | rc는 rio_read 함수의 반환 값 저장한다
+    char c, *bufp = usrbuf;  //bufp는 usrbuf를 가리키는 포인터 (데이터 순차적으로 저장함)
 
     for (n = 1; n < maxlen; n++) { 
-        if ((rc = rio_read(rp, &c, 1)) == 1) {
+        if ((rc = rio_read(rp, &c, 1)) == 1) {  //rc == 1 은 1바이트를 성공적으로 읽었다는 것
 	    *bufp++ = c;
 	    if (c == '\n') {
                 n++;
@@ -888,10 +1040,22 @@ ssize_t rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen)
 	} else
 	    return -1;	  /* Error */
     }
-    *bufp = 0;
-    return n-1;
+    *bufp = 0;  //모든 반복이 끝나면, bufp가 가리키는 위치에 0(널 문자)을 추가하여 문자열 종료
+    return n-1;  //최종적으로, 실제 읽은 바이트 수를 반환한다.
 }
 /* $end rio_readlineb */
+/*
+[역할]
+rio_readlineb 함수는 rio_t 구조체를 통해 한 줄씩 데이터를 읽어오는 함수입니다. 
+데이터를 한 글자씩 읽으면서 줄 바꿈 문자(\\n)가 나타나면 읽기를 중단하고, 해당 줄을 버퍼에 저장합니다.
+
+이 함수는 rp를 통해 데이터를 한 글자씩 읽어 usrbuf에 저장하고, 줄 바꿈 문자가 나올 때까지 반복하여 한 줄을 읽어 반환합니다. 
+EOF에 도달하면 0을, 오류가 발생하면 -1을 반환합니다
+
+
+*/
+
+
 
 /**********************************
  * Wrappers for robust I/O routines
@@ -981,7 +1145,7 @@ int open_clientfd(char *hostname, char *port) {
     if (!p) /* All connects failed */
         return -1;
     else    /* The last connect succeeded */
-        return clientfd;
+        return clientfd;  //정수형임. 파일 디스크립터 반환됨.
 }
 /* $end open_clientfd */
 

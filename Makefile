@@ -27,3 +27,17 @@ handin:
 clean:
 	rm -f *~ *.o proxy core *.tar *.zip *.gzip *.bzip *.gz
 
+# echo 추가
+echoclient.o: echo-client.c csapp.h
+	$(CC) $(CFLAGS) -c echo-client.c
+
+echoclient: echo-client.o csapp.o
+	$(CC) $(CFLAGS) echo-client.o csapp.o -o echoclient $(LDFLAGS)
+
+echoserver.o: echo-server.c csapp.h
+	$(CC) $(CFLAGS) -c echo-server.c
+
+echoserver: echo-server.o csapp.o
+	$(CC) $(CFLAGS) echo-server.o csapp.o -o echoserver $(LDFLAGS)
+
+
